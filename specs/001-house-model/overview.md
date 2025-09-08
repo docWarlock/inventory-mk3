@@ -109,9 +109,11 @@ README.md                   # Project documentation
 ## Integration Points
 
 ### Database Layer
-- Shared database connection in `internal/database/`
-- Migrations handled through standard Go tools
-- UUID primary keys for global uniqueness
+- **Shared database connection** in `internal/database/`
+- **Migrations handled** through standard Go tools
+- **UUID primary keys** for global uniqueness
+- **Configuration-driven** database selection (SQLite for dev, PostgreSQL for prod)
+- **Docker-ready** database setup for Synology NAS deployment
 
 ### API Layer  
 - RESTful endpoints following standard patterns
@@ -126,8 +128,10 @@ README.md                   # Project documentation
 ## Future Expansion Considerations
 
 ### Database Support
-- Current: SQLite (MVP)
-- Future: PostgreSQL, MySQL extensions
+- **Current**: SQLite (MVP for initial development and testing)
+- **Future**: PostgreSQL, MySQL extensions for production deployment
+- **Synology NAS Integration**: Docker container configuration for database persistence
+- **Migration Strategy**: Support for seamless transition from SQLite to PostgreSQL
 
 ### Feature Modules
 - Room grid visualization with Z-axis support
