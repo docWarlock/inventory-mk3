@@ -19,7 +19,8 @@ This document captures the technical research and decisions made for implementin
   - `id`: TEXT (UUID format)
   - `name`: TEXT (required, unique)
   - `address`: TEXT (optional)
-  - `dimensions`: JSONB/TEXT (for structured data storage)
+  - `total_area`: REAL/NUMERIC (for area measurements)
+  - `unit`: TEXT (for unit of measurement)
   - `created_at`: DATETIME/TIMESTAMP
   - `updated_at`: DATETIME/TIMESTAMP
 
@@ -42,9 +43,10 @@ This document captures the technical research and decisions made for implementin
 - **Address Validation**:
   - Optional field
   - Maximum length: 500 characters
-- **Dimensions Validation**:
-  - Optional JSON structure
-  - Schema validation for standard measurements
+- **Total Area Validation**:
+  - Optional numeric field
+  - Must be positive if provided
+  - Unit of measurement required if area is specified
 
 ### Performance Considerations
 - **Query Optimization**: 

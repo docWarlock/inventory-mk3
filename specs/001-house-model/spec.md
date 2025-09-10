@@ -59,7 +59,8 @@ As a user of the home inventory system, I want to create and manage houses so th
   - `id`: Unique identifier (UUID)
   - `name`: Human-readable name of the house (required, unique)
   - `address`: Physical address of the house (optional)
-  - `dimensions`: Standard dimensions for the house (optional)
+  - `total_area`: Total area in Square Feet, Square Meeters, or Korean Pyeong (optional)
+  - `unit`: Unit of measurement for total area (square feet, square meters, or pyeong)
   - `created_at`: Timestamp when house was created
   - `updated_at`: Timestamp when house was last updated
 
