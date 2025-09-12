@@ -5,7 +5,7 @@ import apiClient from '../utils/apiClient';
 const HouseForm = () => {
     const [house, setHouse] = useState({
         name: '',
-        total_area: '',
+        totalArea: null,
         unit: ''
     });
     const [loading, setLoading] = useState(false);
@@ -22,7 +22,12 @@ const HouseForm = () => {
     const fetchHouse = async (houseId) => {
         try {
             const response = await apiClient.get(`/houses/${houseId}`);
-            setHouse(response.data);
+            // Convert backend field names to frontend format
+            setHouse({
+                name: response.data.name,
+                totalArea: response.data.total_area || null,
+                unit: response.data.unit || ''
+            });
         } catch (err) {
             setError('Failed to fetch house');
         }
@@ -42,6 +47,9 @@ const HouseForm = () => {
         setError(null);
 
         try {
+            // Log the data being sent for debugging
+            console.log('Sending house data:', house);
+
             if (id) {
                 // Update existing house
                 await apiClient.put(`/houses/${id}`, house);
@@ -51,7 +59,8 @@ const HouseForm = () => {
             }
             navigate('/houses');
         } catch (err) {
-            setError('Failed to save house');
+            console.error('Error saving house:', err.response?.data || err.message);
+            setError('Failed to save house: ' + (err.response?.data?.message || err.message));
             setLoading(false);
         }
     };
@@ -75,8 +84,8 @@ const HouseForm = () => {
                     <label>Total Area:</label>
                     <input
                         type="number"
-                        name="total_area"
-                        value={house.total_area}
+                        name="totalArea"
+                        value={house.totalArea}
                         onChange={handleChange}
                     />
                 </div>
