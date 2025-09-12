@@ -11,6 +11,8 @@ type Room struct {
 	HouseID     string          `json:"house_id"`
 	Description string          `json:"description,omitempty"`
 	Dimensions  *RoomDimensions `json:"dimensions,omitempty"`
+	Area        float64         `json:"area,omitempty"`
+	Unit        string          `json:"unit,omitempty"`
 	CreatedAt   time.Time       `json:"created_at"`
 	UpdatedAt   time.Time       `json:"updated_at"`
 }
@@ -28,6 +30,8 @@ type RoomCreateRequest struct {
 	HouseID     string          `json:"house_id"`
 	Description string          `json:"description,omitempty"`
 	Dimensions  *RoomDimensions `json:"dimensions,omitempty"`
+	Area        float64         `json:"area,omitempty"`
+	Unit        string          `json:"unit,omitempty"`
 }
 
 // RoomUpdateRequest represents the request body for updating a room
@@ -36,4 +40,6 @@ type RoomUpdateRequest struct {
 	HouseID     *string         `json:"house_id,omitempty"`
 	Description *string         `json:"description,omitempty"`
 	Dimensions  *RoomDimensions `json:"dimensions,omitempty"`
+	Area        *float64        `json:"area,omitempty"`
+	Unit        *string         `json:"unit,omitempty"`
 }

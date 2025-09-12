@@ -34,6 +34,8 @@ func (s *serviceImpl) CreateRoom(ctx context.Context, req *RoomCreateRequest) (*
 		HouseID:     req.HouseID,
 		Description: req.Description,
 		Dimensions:  req.Dimensions,
+		Area:        req.Area,
+		Unit:        req.Unit,
 	}
 
 	// Save to database
@@ -84,6 +86,14 @@ func (s *serviceImpl) UpdateRoom(ctx context.Context, id string, req *RoomUpdate
 
 	if req.Dimensions != nil {
 		room.Dimensions = req.Dimensions
+	}
+
+	if req.Area != nil {
+		room.Area = *req.Area
+	}
+
+	if req.Unit != nil {
+		room.Unit = *req.Unit
 	}
 
 	room.UpdatedAt = time.Now()

@@ -12,6 +12,7 @@ import (
 	"github.com/docWarlock/inventory-mk3/internal/houses"
 	"github.com/docWarlock/inventory-mk3/internal/rooms"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 )
 
 func main() {
@@ -60,6 +61,14 @@ func main() {
 
 func setupRouter(houseHandler houses.Handler, roomHandler rooms.Handler) http.Handler {
 	router := chi.NewRouter()
+
+	// Add CORS middleware
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+	}))
 
 	// House endpoints
 	router.Post("/houses", houseHandler.CreateHouse)
