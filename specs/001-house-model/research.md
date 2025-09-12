@@ -87,6 +87,22 @@ Following the project's clean architecture principles:
 - Integration with spatial databases for advanced grid support
 - Enhanced dimension validation for future Gridfinity features at container level
 
+## Frontend Implementation Details
+
+### Component Architecture
+- **HouseList Component**: Displays a list of houses in a table format with edit and view rooms links. Includes delete functionality with confirmation dialog.
+- **HouseForm Component**: Provides a form for creating new houses and editing existing houses with validation for required fields and unique name constraint.
+
+### Navigation Flow
+- Main house listing page at `/houses`
+- Create new house at `/houses/new` 
+- Edit existing house at `/houses/:id/edit`
+- View rooms for a house at `/houses/:id/rooms`
+
+### API Integration
+- Uses `apiClient` utility for all HTTP requests
+- Implements proper error handling and loading states
+
 ## Risks and Mitigations
 
 ### Risk: Duplicate House Names

@@ -49,14 +49,27 @@ func (r *housesRepository) GetHouseByID(ctx context.Context, id string) (*houses
 
 // ListHouses retrieves all houses with optional pagination
 func (r *housesRepository) ListHouses(ctx context.Context, limit, offset int) ([]*houses.House, error) {
-	query := `
-	SELECT id, name, total_area, unit, created_at, updated_at
-	FROM houses
-	ORDER BY name
-	LIMIT ? OFFSET ?
-	`
+	var query string
+	var args []interface{}
 
-	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	if limit > 0 {
+		query = `
+		SELECT id, name, total_area, unit, created_at, updated_at
+		FROM houses
+		ORDER BY name
+		LIMIT ? OFFSET ?
+		`
+		args = []interface{}{limit, offset}
+	} else {
+		query = `
+		SELECT id, name, total_area, unit, created_at, updated_at
+		FROM houses
+		ORDER BY name
+		`
+		args = []interface{}{}
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

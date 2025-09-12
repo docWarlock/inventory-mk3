@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/docWarlock/inventory-mk3/internal/database"
 	"github.com/docWarlock/inventory-mk3/internal/houses"
 	"github.com/docWarlock/inventory-mk3/internal/rooms"
 	"github.com/go-chi/chi/v5"
@@ -16,8 +17,19 @@ import (
 )
 
 func main() {
-	// Create repository and service
-	houseRepo := houses.NewInMemoryHouseRepository()
+	// Initialize database
+	db, err := database.NewDB("houses.db")
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+
+	// Initialize schema
+	if err := db.InitSchema(); err != nil {
+		log.Fatal("Failed to initialize database schema:", err)
+	}
+
+	// Create repository and service using database implementation
+	houseRepo := database.NewHousesRepository(db)
 	houseService := houses.NewHouseService(houseRepo)
 	houseHandler := houses.NewHouseHandler(houseService)
 
