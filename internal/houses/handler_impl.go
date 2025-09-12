@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
@@ -38,7 +39,7 @@ func (h *HouseHandler) CreateHouse(w http.ResponseWriter, r *http.Request) {
 		case *ValidationError:
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
-		case *DuplicateHouseError:
+		case *DuplicateError:
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		default:
@@ -57,8 +58,8 @@ func (h *HouseHandler) CreateHouse(w http.ResponseWriter, r *http.Request) {
 func (h *HouseHandler) GetHouse(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	// Extract ID from URL
-	id := r.URL.Path[len("/houses/"):] // Simple extraction, in real app use proper routing
+	// Extract ID from URL using Chi router
+	id := chi.URLParam(r, "id")
 
 	// Validate UUID
 	if _, err := uuid.Parse(id); err != nil {
@@ -104,8 +105,8 @@ func (h *HouseHandler) ListHouses(w http.ResponseWriter, r *http.Request) {
 func (h *HouseHandler) UpdateHouse(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	// Extract ID from URL
-	id := r.URL.Path[len("/houses/"):] // Simple extraction, in real app use proper routing
+	// Extract ID from URL using Chi router
+	id := chi.URLParam(r, "id")
 
 	// Validate UUID
 	if _, err := uuid.Parse(id); err != nil {
@@ -130,7 +131,7 @@ func (h *HouseHandler) UpdateHouse(w http.ResponseWriter, r *http.Request) {
 		case *HouseNotFoundError:
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
-		case *DuplicateHouseError:
+		case *DuplicateError:
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		default:
@@ -148,8 +149,8 @@ func (h *HouseHandler) UpdateHouse(w http.ResponseWriter, r *http.Request) {
 func (h *HouseHandler) DeleteHouse(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	// Extract ID from URL
-	id := r.URL.Path[len("/houses/"):] // Simple extraction, in real app use proper routing
+	// Extract ID from URL using Chi router
+	id := chi.URLParam(r, "id")
 
 	// Validate UUID
 	if _, err := uuid.Parse(id); err != nil {

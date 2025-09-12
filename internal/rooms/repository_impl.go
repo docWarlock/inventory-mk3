@@ -2,126 +2,89 @@ package rooms
 
 import (
 	"context"
-	"database/sql"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
 )
 
-// RepositoryImpl implements the RoomRepository interface
-type RepositoryImpl struct {
-	db *sql.DB
+// inMemoryRoomRepository implements the Repository interface with in-memory storage
+type inMemoryRoomRepository struct {
+	rooms map[string]*Room
+	mutex sync.RWMutex
 }
 
-// NewRepository creates a new room repository instance
-func NewRepository(db *sql.DB) *RepositoryImpl {
-	return &RepositoryImpl{
-		db: db,
+// NewInMemoryRoomRepository creates a new in-memory room repository
+func NewInMemoryRoomRepository() Repository {
+	return &inMemoryRoomRepository{
+		rooms: make(map[string]*Room),
 	}
 }
 
-// CreateRoom creates a new room
-func (r *RepositoryImpl) CreateRoom(ctx context.Context, room *Room) error {
-	query := `
-		INSERT INTO rooms (id, name, house_id, description, dimensions, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-	`
+// CreateRoom creates a new room in memory
+func (r *inMemoryRoomRepository) CreateRoom(ctx context.Context, room *Room) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 
-	_, err := r.db.ExecContext(ctx, query,
-		room.ID,
-		room.Name,
-		room.HouseID,
-		room.Description,
-		room.Dimensions,
-		room.CreatedAt,
-		room.UpdatedAt,
-	)
-	return err
+	// Generate ID if not provided
+	if room.ID == "" {
+		room.ID = uuid.New().String()
+	}
+
+	// Set timestamps
+	now := time.Now()
+	room.CreatedAt = now
+	room.UpdatedAt = now
+
+	r.rooms[room.ID] = room
+	return nil
 }
 
 // GetRoomByID retrieves a room by its ID
-func (r *RepositoryImpl) GetRoomByID(ctx context.Context, id string) (*Room, error) {
-	query := `
-		SELECT id, name, house_id, description, dimensions, created_at, updated_at
-		FROM rooms
-		WHERE id = $1
-	`
+func (r *inMemoryRoomRepository) GetRoomByID(ctx context.Context, id string) (*Room, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 
-	var room Room
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&room.ID,
-		&room.Name,
-		&room.HouseID,
-		&room.Description,
-		&room.Dimensions,
-		&room.CreatedAt,
-		&room.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
+	room, exists := r.rooms[id]
+	if !exists {
+		return nil, nil // Return nil instead of error for "not found"
 	}
 
-	return &room, nil
+	return room, nil
 }
 
 // ListRoomsByHouseID retrieves all rooms for a specific house
-func (r *RepositoryImpl) ListRoomsByHouseID(ctx context.Context, houseID string) ([]*Room, error) {
-	query := `
-		SELECT id, name, house_id, description, dimensions, created_at, updated_at
-		FROM rooms
-		WHERE house_id = $1
-		ORDER BY name
-	`
-
-	rows, err := r.db.QueryContext(ctx, query, houseID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+func (r *inMemoryRoomRepository) ListRoomsByHouseID(ctx context.Context, houseID string) ([]*Room, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 
 	var rooms []*Room
-	for rows.Next() {
-		var room Room
-		err := rows.Scan(
-			&room.ID,
-			&room.Name,
-			&room.HouseID,
-			&room.Description,
-			&room.Dimensions,
-			&room.CreatedAt,
-			&room.UpdatedAt,
-		)
-		if err != nil {
-			return nil, err
+	for _, room := range r.rooms {
+		if room.HouseID == houseID {
+			rooms = append(rooms, room)
 		}
-		rooms = append(rooms, &room)
 	}
 
 	return rooms, nil
 }
 
 // UpdateRoom updates an existing room
-func (r *RepositoryImpl) UpdateRoom(ctx context.Context, room *Room) error {
-	query := `
-		UPDATE rooms
-		SET name = $1, description = $2, dimensions = $3, updated_at = $4
-		WHERE id = $5
-	`
+func (r *inMemoryRoomRepository) UpdateRoom(ctx context.Context, room *Room) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 
-	_, err := r.db.ExecContext(ctx, query,
-		room.Name,
-		room.Description,
-		room.Dimensions,
-		room.UpdatedAt,
-		room.ID,
-	)
-	return err
+	// Set updated timestamp
+	room.UpdatedAt = time.Now()
+
+	r.rooms[room.ID] = room
+	return nil
 }
 
 // DeleteRoom deletes a room by its ID
-func (r *RepositoryImpl) DeleteRoom(ctx context.Context, id string) error {
-	query := `
-		DELETE FROM rooms
-		WHERE id = $1
-	`
+func (r *inMemoryRoomRepository) DeleteRoom(ctx context.Context, id string) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 
-	_, err := r.db.ExecContext(ctx, query, id)
-	return err
+	delete(r.rooms, id)
+	return nil
 }

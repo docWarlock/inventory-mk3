@@ -4,15 +4,15 @@ import (
 	"context"
 )
 
-// Service defines the interface for room business logic
+// Service defines the interface for room business logic operations
 type Service interface {
-	// CreateRoom creates a new room with the provided details
+	// CreateRoom creates a new room
 	CreateRoom(ctx context.Context, req *RoomCreateRequest) (*Room, error)
 
 	// GetRoom retrieves a room by its ID
 	GetRoom(ctx context.Context, id string) (*Room, error)
 
-	// ListRooms retrieves all rooms for a specific house
+	// ListRooms lists all rooms for a specific house
 	ListRooms(ctx context.Context, houseID string) ([]*Room, error)
 
 	// UpdateRoom updates an existing room

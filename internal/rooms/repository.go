@@ -4,9 +4,9 @@ import (
 	"context"
 )
 
-// Repository defines the interface for room data operations
+// Repository defines the interface for room persistence operations
 type Repository interface {
-	// CreateRoom creates a new room
+	// CreateRoom creates a new room in the database
 	CreateRoom(ctx context.Context, room *Room) error
 
 	// GetRoomByID retrieves a room by its ID

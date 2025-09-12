@@ -4,9 +4,9 @@ import (
 	"net/http"
 )
 
-// Handler defines the interface for room HTTP endpoints
+// Handler defines the interface for room HTTP handlers
 type Handler interface {
-	// CreateRoom handles POST /houses/{house_id}/rooms
+	// CreateRoom handles POST /rooms
 	CreateRoom(w http.ResponseWriter, r *http.Request)
 
 	// GetRoom handles GET /rooms/{id}

@@ -2,38 +2,38 @@ package rooms
 
 import (
 	"context"
-	"database/sql"
 	"time"
-
-	"github.com/google/uuid"
 )
 
-// ServiceImpl implements the RoomService interface
-type ServiceImpl struct {
+// serviceImpl implements the RoomService interface
+type serviceImpl struct {
 	repository Repository
 }
 
 // NewService creates a new room service instance
-func NewService(repository Repository) *ServiceImpl {
-	return &ServiceImpl{
+func NewService(repository Repository) *serviceImpl {
+	return &serviceImpl{
 		repository: repository,
 	}
 }
 
-// CreateRoom creates a new room with the provided details
-func (s *ServiceImpl) CreateRoom(ctx context.Context, req *RoomCreateRequest) (*Room, error) {
-	// Generate a new UUID for the room
-	id := uuid.New()
+// CreateRoom creates a new room with validation
+func (s *serviceImpl) CreateRoom(ctx context.Context, req *RoomCreateRequest) (*Room, error) {
+	// Validate request
+	if req.Name == "" {
+		return nil, &ValidationError{Field: "name", Message: "Name is required"}
+	}
 
-	// Create the room object
+	if req.HouseID == "" {
+		return nil, &ValidationError{Field: "house_id", Message: "House ID is required"}
+	}
+
+	// Create room object - let the repository handle ID generation
 	room := &Room{
-		ID:          id,
 		Name:        req.Name,
 		HouseID:     req.HouseID,
 		Description: req.Description,
 		Dimensions:  req.Dimensions,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
 	}
 
 	// Save to database
@@ -46,50 +46,49 @@ func (s *ServiceImpl) CreateRoom(ctx context.Context, req *RoomCreateRequest) (*
 }
 
 // GetRoom retrieves a room by its ID
-func (s *ServiceImpl) GetRoom(ctx context.Context, id string) (*Room, error) {
+func (s *serviceImpl) GetRoom(ctx context.Context, id string) (*Room, error) {
 	room, err := s.repository.GetRoomByID(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil // Return nil if not found
-		}
 		return nil, err
 	}
+
 	return room, nil
 }
 
-// ListRooms retrieves all rooms for a specific house
-func (s *ServiceImpl) ListRooms(ctx context.Context, houseID string) ([]*Room, error) {
+// ListRooms lists all rooms for a specific house
+func (s *serviceImpl) ListRooms(ctx context.Context, houseID string) ([]*Room, error) {
 	rooms, err := s.repository.ListRoomsByHouseID(ctx, houseID)
 	if err != nil {
 		return nil, err
 	}
+
 	return rooms, nil
 }
 
-// UpdateRoom updates an existing room
-func (s *ServiceImpl) UpdateRoom(ctx context.Context, id string, req *RoomUpdateRequest) (*Room, error) {
-	// First get the existing room
+// UpdateRoom updates an existing room with validation
+func (s *serviceImpl) UpdateRoom(ctx context.Context, id string, req *RoomUpdateRequest) (*Room, error) {
+	// Get the existing room
 	room, err := s.repository.GetRoomByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if room == nil {
-		return nil, nil // Room not found
-	}
 
-	// Update fields if provided
+	// Apply updates if provided
 	if req.Name != nil {
 		room.Name = *req.Name
 	}
+
 	if req.Description != nil {
-		room.Description = req.Description
+		room.Description = *req.Description
 	}
+
 	if req.Dimensions != nil {
 		room.Dimensions = req.Dimensions
 	}
+
 	room.UpdatedAt = time.Now()
 
-	// Save updated room to database
+	// Update in database
 	err = s.repository.UpdateRoom(ctx, room)
 	if err != nil {
 		return nil, err
@@ -99,6 +98,21 @@ func (s *ServiceImpl) UpdateRoom(ctx context.Context, id string, req *RoomUpdate
 }
 
 // DeleteRoom deletes a room by its ID
-func (s *ServiceImpl) DeleteRoom(ctx context.Context, id string) error {
-	return s.repository.DeleteRoom(ctx, id)
+func (s *serviceImpl) DeleteRoom(ctx context.Context, id string) error {
+	err := s.repository.DeleteRoom(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidationError represents a validation error
+type ValidationError struct {
+	Field   string
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
 }

@@ -27,8 +27,8 @@ func (r *InMemoryHouseRepository) CreateHouse(ctx context.Context, house *House)
 	defer r.mu.Unlock()
 
 	// Set UUID if not already set
-	if house.ID == uuid.Nil {
-		house.ID = uuid.New()
+	if house.ID == "" {
+		house.ID = uuid.New().String()
 	}
 
 	// Set timestamps
@@ -36,14 +36,7 @@ func (r *InMemoryHouseRepository) CreateHouse(ctx context.Context, house *House)
 	house.CreatedAt = now
 	house.UpdatedAt = now
 
-	// Check for duplicate name
-	for _, existingHouse := range r.houses {
-		if existingHouse.Name == house.Name {
-			return &DuplicateHouseError{Message: "house name must be unique"}
-		}
-	}
-
-	r.houses[house.ID.String()] = house
+	r.houses[house.ID] = house
 	return nil
 }
 
@@ -59,8 +52,8 @@ func (r *InMemoryHouseRepository) GetHouseByID(ctx context.Context, id string) (
 	return house, nil
 }
 
-// ListHouses retrieves all houses
-func (r *InMemoryHouseRepository) ListHouses(ctx context.Context) ([]*House, error) {
+// ListHouses retrieves all houses with optional pagination
+func (r *InMemoryHouseRepository) ListHouses(ctx context.Context, limit, offset int) ([]*House, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -72,21 +65,30 @@ func (r *InMemoryHouseRepository) ListHouses(ctx context.Context) ([]*House, err
 }
 
 // UpdateHouse updates an existing house
-func (r *InMemoryHouseRepository) UpdateHouse(ctx context.Context, house *House) error {
+func (r *InMemoryHouseRepository) UpdateHouse(ctx context.Context, id string, updateReq *HouseUpdateRequest) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	house, exists := r.houses[id]
+	if !exists {
+		return &HouseNotFoundError{Message: "house not found"}
+	}
+
+	// Update fields if provided
+	if updateReq.Name != nil {
+		house.Name = *updateReq.Name
+	}
+	if updateReq.TotalArea != nil {
+		house.TotalArea = updateReq.TotalArea
+	}
+	if updateReq.Unit != "" {
+		house.Unit = updateReq.Unit
+	}
 
 	// Set updated timestamp
 	house.UpdatedAt = time.Now()
 
-	// Check for duplicate name (excluding the current house)
-	for id, existingHouse := range r.houses {
-		if existingHouse.Name == house.Name && id != house.ID.String() {
-			return &DuplicateHouseError{Message: "house name must be unique"}
-		}
-	}
-
-	r.houses[house.ID.String()] = house
+	r.houses[id] = house
 	return nil
 }
 
@@ -99,17 +101,21 @@ func (r *InMemoryHouseRepository) DeleteHouse(ctx context.Context, id string) er
 	return nil
 }
 
-// GetHouseByName retrieves a house by its name
-func (r *InMemoryHouseRepository) GetHouseByName(ctx context.Context, name string) (*House, error) {
+// HouseExists checks if a house with the given name exists (excluding the house with given ID)
+func (r *InMemoryHouseRepository) HouseExists(ctx context.Context, name string, excludeID *string) (bool, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	for _, house := range r.houses {
+	for id, house := range r.houses {
 		if house.Name == name {
-			return house, nil
+			// If excludeID is provided and matches the current ID, skip this check
+			if excludeID != nil && *excludeID == id {
+				continue
+			}
+			return true, nil
 		}
 	}
-	return nil, &HouseNotFoundError{Message: "house not found"}
+	return false, nil
 }
 
 // HouseNotFoundError is returned when a house is not found

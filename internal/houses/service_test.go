@@ -16,15 +16,13 @@ func TestHouseService_CreateHouse(t *testing.T) {
 
 	// Test creating a house
 	req := &HouseCreateRequest{
-		Name:    "Test House",
-		Address: "123 Test St",
+		Name: "Test House",
 	}
 
 	house, err := service.CreateHouse(ctx, req)
 	assert.NoError(t, err)
 	assert.NotNil(t, house)
 	assert.Equal(t, "Test House", house.Name)
-	assert.Equal(t, "123 Test St", house.Address)
 	assert.NotEmpty(t, house.ID)
 	assert.False(t, house.CreatedAt.IsZero())
 	assert.False(t, house.UpdatedAt.IsZero())
@@ -52,7 +50,7 @@ func TestHouseService_CreateHouse_UniqueName(t *testing.T) {
 
 	_, err2 := service.CreateHouse(ctx, req2)
 	assert.Error(t, err2)
-	assert.Contains(t, err2.Error(), "house name must be unique")
+	assert.Contains(t, err2.Error(), "House with this name already exists")
 }
 
 func TestHouseService_GetHouse(t *testing.T) {
@@ -64,15 +62,14 @@ func TestHouseService_GetHouse(t *testing.T) {
 
 	// Create a house
 	req := &HouseCreateRequest{
-		Name:    "Test House",
-		Address: "123 Test St",
+		Name: "Test House",
 	}
 
 	house, err := service.CreateHouse(ctx, req)
 	assert.NoError(t, err)
 
 	// Retrieve the house
-	retrievedHouse, err := service.GetHouse(ctx, house.ID.String())
+	retrievedHouse, err := service.GetHouse(ctx, house.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, house.ID, retrievedHouse.ID)
 	assert.Equal(t, "Test House", retrievedHouse.Name)
