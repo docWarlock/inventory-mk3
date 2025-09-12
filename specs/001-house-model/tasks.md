@@ -69,6 +69,10 @@
 - [ ] Ensure plan.md aligns with actual implementation
 - [ ] Run final validation against project overview
 - [ ] Document any deviations from original plan
+- [ ] Add frontend components to tasks:
+  - [ ] Create HouseList component with delete functionality
+  - [ ] Create HouseForm component for creating/editing houses
+  - [ ] Add navigation links for house management
 
 ## Task Dependencies
 

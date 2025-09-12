@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../utils/apiClient';
+import { Link } from 'react-router-dom';
 
 const HouseList = () => {
     const [houses, setHouses] = useState([]);
@@ -13,11 +14,26 @@ const HouseList = () => {
     const fetchHouses = async () => {
         try {
             const response = await apiClient.get('/houses');
-            setHouses(response.data);
+            // Handle case where API returns null for empty results
+            setHouses(response.data || []);
             setLoading(false);
         } catch (err) {
             setError('Failed to fetch houses');
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (houseId) => {
+        if (!window.confirm('Are you sure you want to delete this house?')) {
+            return;
+        }
+
+        try {
+            await apiClient.delete(`/houses/${houseId}`);
+            // Refresh the list after deletion
+            fetchHouses();
+        } catch (err) {
+            setError('Failed to delete house');
         }
     };
 
@@ -27,6 +43,7 @@ const HouseList = () => {
     return (
         <div>
             <h2>Houses</h2>
+            <p><Link to="/houses/new">Add New House</Link></p>
             <table>
                 <thead>
                     <tr>
@@ -46,7 +63,10 @@ const HouseList = () => {
                             <td>{new Date(house.created_at).toLocaleDateString()}</td>
                             <td>
                                 <a href={`/houses/${house.id}/edit`}>Edit</a> |
-                                <a href={`/houses/${house.id}/rooms`}>View Rooms</a>
+                                <a href={`/houses/${house.id}/rooms`}>View Rooms</a> |
+                                <button onClick={() => handleDelete(house.id)} style={{ border: 'none', background: 'none', color: 'red', cursor: 'pointer' }}>
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                     ))}

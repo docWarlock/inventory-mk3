@@ -64,6 +64,10 @@ As a user of the home inventory system, I want to create and manage houses so th
   - `created_at`: Timestamp when house was created
   - `updated_at`: Timestamp when house was last updated
 
+### Frontend Implementation
+- **HouseList Component**: Displays a list of houses with options to edit or view rooms. Includes delete functionality for each house.
+- **HouseForm Component**: Provides forms for creating new houses and editing existing houses with validation.
+
 ---
 
 ## Review & Acceptance Checklist
