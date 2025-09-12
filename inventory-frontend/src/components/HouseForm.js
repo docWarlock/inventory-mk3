@@ -5,7 +5,7 @@ import apiClient from '../utils/apiClient';
 const HouseForm = () => {
     const [house, setHouse] = useState({
         name: '',
-        totalArea: null,
+        total_area: null,
         unit: ''
     });
     const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ const HouseForm = () => {
             // Convert backend field names to frontend format
             setHouse({
                 name: response.data.name,
-                totalArea: response.data.total_area || null,
+                total_area: response.data.total_area || null,
                 unit: response.data.unit || ''
             });
         } catch (err) {
@@ -35,9 +35,14 @@ const HouseForm = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        // Convert total_area to number if it's not empty
+        let newValue = value;
+        if (name === 'total_area' && value !== '') {
+            newValue = parseFloat(value);
+        }
         setHouse(prev => ({
             ...prev,
-            [name]: value
+            [name]: newValue
         }));
     };
 
@@ -50,12 +55,18 @@ const HouseForm = () => {
             // Log the data being sent for debugging
             console.log('Sending house data:', house);
 
+            // Prepare data to send - remove total_area if it's null or empty
+            let dataToSend = { ...house };
+            if (dataToSend.total_area === null || dataToSend.total_area === '') {
+                delete dataToSend.total_area;
+            }
+
             if (id) {
                 // Update existing house
-                await apiClient.put(`/houses/${id}`, house);
+                await apiClient.put(`/houses/${id}`, dataToSend);
             } else {
                 // Create new house
-                await apiClient.post('/houses', house);
+                await apiClient.post('/houses', dataToSend);
             }
             navigate('/houses');
         } catch (err) {
@@ -84,8 +95,8 @@ const HouseForm = () => {
                     <label>Total Area:</label>
                     <input
                         type="number"
-                        name="totalArea"
-                        value={house.totalArea}
+                        name="total_area"
+                        value={house.total_area}
                         onChange={handleChange}
                     />
                 </div>

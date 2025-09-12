@@ -14,7 +14,8 @@ const HouseList = () => {
     const fetchHouses = async () => {
         try {
             const response = await apiClient.get('/houses');
-            setHouses(response.data);
+            // Handle case where API returns null for empty results
+            setHouses(response.data || []);
             setLoading(false);
         } catch (err) {
             setError('Failed to fetch houses');
